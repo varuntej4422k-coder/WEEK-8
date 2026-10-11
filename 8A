@@ -1,0 +1,396 @@
+```dart
+import 'package:flutter/material.dart';
+
+void main() {
+  runApp(const AnimationDemoApp());
+}
+
+class AnimationDemoApp extends StatelessWidget {
+  const AnimationDemoApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'Flutter Animations',
+      theme: ThemeData(
+        colorSchemeSeed: Colors.deepPurple,
+        useMaterial3: true,
+      ),
+      home: const AnimationDemoScreen(),
+    );
+  }
+}
+
+class AnimationDemoScreen extends StatefulWidget {
+  const AnimationDemoScreen({super.key});
+
+  @override
+  State<AnimationDemoScreen> createState() =>
+      _AnimationDemoScreenState();
+}
+
+class _AnimationDemoScreenState extends State<AnimationDemoScreen>
+    with TickerProviderStateMixin {
+  // Fade animation
+  late AnimationController _fadeController;
+  late Animation<double> _fadeAnimation;
+
+  // Slide animation
+  late AnimationController _slideController;
+  late Animation<Offset> _slideAnimation;
+
+  // Scale animation
+  late AnimationController _scaleController;
+  late Animation<double> _scaleAnimation;
+
+  // Rotation animation
+  late AnimationController _rotationController;
+  late Animation<double> _rotationAnimation;
+
+  // Combined fade and slide animation
+  late AnimationController _combinedController;
+  late Animation<double> _combinedFadeAnimation;
+  late Animation<Offset> _combinedSlideAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // 1. Fade animation: starts visible and fades in on app launch.
+    _fadeController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
+    );
+
+    _fadeAnimation = CurvedAnimation(
+      parent: _fadeController,
+      curve: Curves.easeIn,
+    );
+
+    _fadeController.forward();
+
+    // 2. Slide animation: enters from the left.
+    _slideController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    );
+
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(-1.5, 0),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(
+        parent: _slideController,
+        curve: Curves.easeOutCubic,
+      ),
+    );
+
+    // 3. Scale animation: bounce effect.
+    _scaleController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+
+    _scaleAnimation = Tween<double>(
+      begin: 1.0,
+      end: 1.25,
+    ).animate(
+      CurvedAnimation(
+        parent: _scaleController,
+        curve: Curves.elasticOut,
+      ),
+    );
+
+    // 4. Rotation animation: one full rotation.
+    _rotationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
+    );
+
+    _rotationAnimation = Tween<double>(
+      begin: 0,
+      end: 1,
+    ).animate(
+      CurvedAnimation(
+        parent: _rotationController,
+        curve: Curves.easeInOut,
+      ),
+    );
+
+    // 5. Combined fade and slide animation.
+    _combinedController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
+    );
+
+    _combinedFadeAnimation = CurvedAnimation(
+      parent: _combinedController,
+      curve: Curves.easeIn,
+    );
+
+    _combinedSlideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.8),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(
+        parent: _combinedController,
+        curve: Curves.easeOut,
+      ),
+    );
+  }
+
+  // Reset every animation
+  void resetAnimations() {
+    _fadeController.forward(from: 1);
+    _slideController.reset();
+    _scaleController.reset();
+    _rotationController.reset();
+    _combinedController.reset();
+
+    setState(() {});
+  }
+
+  @override
+  void dispose() {
+    _fadeController.dispose();
+    _slideController.dispose();
+    _scaleController.dispose();
+    _rotationController.dispose();
+    _combinedController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text(
+          'Flutter Animation Demo',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        centerTitle: true,
+        backgroundColor: Colors.deepPurple,
+        foregroundColor: Colors.white,
+      ),
+
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              const Text(
+                'Explore Five Animations',
+                style: TextStyle(
+                  fontSize: 23,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              // ---------------- FADE ----------------
+
+              AnimatedBuilder(
+                animation: _fadeAnimation,
+                builder: (context, child) {
+                  return Opacity(
+                    opacity: _fadeAnimation.value,
+                    child: child,
+                  );
+                },
+                child: const AnimationCard(
+                  title: '1. Fade Animation',
+                  description: 'Fade in and fade out',
+                  icon: Icons.visibility,
+                  color: Colors.blue,
+                ),
+              ),
+
+              const SizedBox(height: 10),
+
+              Wrap(
+                spacing: 10,
+                runSpacing: 8,
+                alignment: WrapAlignment.center,
+                children: [
+                  ElevatedButton(
+                    onPressed: () => _fadeController.forward(),
+                    child: const Text('Fade In'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () => _fadeController.reverse(),
+                    child: const Text('Fade Out'),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 25),
+
+              // ---------------- SLIDE ----------------
+
+              SlideTransition(
+                position: _slideAnimation,
+                child: const AnimationCard(
+                  title: '2. Slide Animation',
+                  description: 'Slides in from the left',
+                  icon: Icons.swipe_right,
+                  color: Colors.green,
+                ),
+              ),
+
+              const SizedBox(height: 10),
+
+              ElevatedButton(
+                onPressed: () => _slideController.forward(from: 0),
+                child: const Text('Slide In'),
+              ),
+
+              const SizedBox(height: 25),
+
+              // ---------------- SCALE ----------------
+
+              GestureDetector(
+                onTap: () {
+                  _scaleController.forward(from: 0);
+                },
+                child: ScaleTransition(
+                  scale: _scaleAnimation,
+                  child: const AnimationCard(
+                    title: '3. Scale Animation',
+                    description: 'Tap this card to bounce',
+                    icon: Icons.zoom_in,
+                    color: Colors.orange,
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 25),
+
+              // ---------------- ROTATION ----------------
+
+              RotationTransition(
+                turns: _rotationAnimation,
+                child: const AnimationCard(
+                  title: '4. Rotation Animation',
+                  description: 'Rotates through 360 degrees',
+                  icon: Icons.rotate_right,
+                  color: Colors.purple,
+                ),
+              ),
+
+              const SizedBox(height: 10),
+
+              ElevatedButton(
+                onPressed: () => _rotationController.forward(from: 0),
+                child: const Text('Rotate 360°'),
+              ),
+
+              const SizedBox(height: 25),
+
+              // ---------------- COMBINED ----------------
+
+              FadeTransition(
+                opacity: _combinedFadeAnimation,
+                child: SlideTransition(
+                  position: _combinedSlideAnimation,
+                  child: const AnimationCard(
+                    title: '5. Combined Animation',
+                    description: 'Fade and slide together',
+                    icon: Icons.animation,
+                    color: Colors.teal,
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 10),
+
+              ElevatedButton(
+                onPressed: () => _combinedController.forward(from: 0),
+                child: const Text('Fade + Slide'),
+              ),
+
+              const SizedBox(height: 25),
+
+              // ---------------- RESET ----------------
+
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: resetAnimations,
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Reset All Animations'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.deepPurple,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.all(16),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 20),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// Reusable card widget
+class AnimationCard extends StatelessWidget {
+  final String title;
+  final String description;
+  final IconData icon;
+  final Color color;
+
+  const AnimationCard({
+    super.key,
+    required this.title,
+    required this.description,
+    required this.icon,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 5,
+      color: color.withValues(alpha: 0.12),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              size: 42,
+              color: color,
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.bold,
+                      color: color,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(description),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+```
